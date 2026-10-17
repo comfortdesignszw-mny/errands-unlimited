@@ -30,3 +30,13 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-t
 nav a{flex:1;text-align:center;padding:10px 4px;color:var(--m);font-size:12px;font-weight:700;cursor:pointer;position:relative}nav a.on{color:var(--p)}nav a span{display:block;font-size:20px}
 nav em{position:absolute;top:4px;left:56%;background:#e22;color:#fff;border-radius:9px;font-style:normal;font-size:10px;padding:1px 5px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:var(--p);color:#fff;padding:10px 16px;border-radius:20px;opacity:0;transition:.25s;pointer-events:none;z-index:9;max-width:90%}#toast.show{opacity:1;transform:translate(-50%,0)}
+footer{background:linear-gradient(var(--p),#341373);color:#fff;text-align:center;padding:22px 14px 26px;margin-top:20px;border-top:4px solid var(--y)}
+footer p{margin:0 0 10px;font-weight:700}footer div{display:flex;gap:6px 16px;justify-content:center;flex-wrap:wrap;font-size:13px;color:#e4d7fa}
+body{padding-bottom:70px}
+.logo{font-size:34px;font-weight:900;font-style:italic;line-height:1;margin:6px 0;color:#fff;text-shadow:0 2px 0 #2b0f66}.logo b{display:block;color:var(--y);font-size:42px}
+.pill{display:inline-block;background:#fff;color:var(--p);font-weight:800;border-radius:20px;padding:4px 14px;font-size:13px;margin:4px 0 8px}
+.ask{font-size:12px;opacity:.9;margin:0 0 2px}.ck{list-style:none;padding:0;margin:8px 0}.ck li{padding:7px 0 7px 32px;position:relative;font-weight:600}
+.ck li:before{content:"✓";position:absolute;left:0;top:6px;width:22px;height:22px;border-radius:50%;background:var(--p);color:var(--y);display:grid;place-items:center;font-size:13px}
+.dia{background:var(--y);color:var(--p);border-radius:14px;padding:10px 14px;font-weight:800;margin:10px 0}
+.cta{display:flex;gap:10px}.cta .btn{margin-top:8px}.trust{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.trust div{background:#fff;border-radius:12px;padding:10px;text-align:center;font-weight:700;color:var(--p);font-size:13px}
+.step{display:flex;justify-content:space-between;align-items:center}.lnk{color:var(--p2);font-weight:700;cursor:pointer;font-size:13px}
