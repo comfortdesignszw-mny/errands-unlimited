@@ -24,7 +24,7 @@ home(){return`<div class=hero><p class=ask>🕒 Too busy to queue, collect or de
 <div class=card><ul class=ck>${SV.slice(0,7).map(s=>`<li>${s[1]}</li>`).join('')}</ul><div class=dia>📍 Diaspora errand services also available!</div>
 <div class=cta><a class=btn data-a=go data-v=m>Find a Messenger</a><a class="btn alt" data-a=go data-v=post>Post an errand</a></div>
 <a class="btn alt" data-a=go data-v=e>Browse errands to run</a></div>
-<div class=card><h3>Your errands, our priority.</h3><p class=m>We serve Bulawayo and surrounding areas.</p><a class=btn data-a=wa data-v="0772642606">💬 WhatsApp Brenda +263 77 264 2606</a><p class=m>✉ errandsunlimited8@gmail.com</p></div>${TRUST}`},
+<div class=card><h3>Your errands, our priority.</h3><p class=m>We serve Bulawayo and surrounding areas. WhatsApp Based Communications!</div>${TRUST}`},
 auth(){const s=S.step;return`<div class=hero><div class=logo>ERRANDS<b>UNLIMITED</b></div><p>${S.pend?'Sign in or register to continue.':'Sign in or create your account.'}</p></div>
 <form class=card data-f=${s?'auth':'look'}>${s?`<div class=step><b>${s==='login'?'Welcome back'+(S.name?', '+esc(S.name):'')+'!':'Create your account'}</b><a class=lnk data-a=back>Change</a></div><div class=m>${esc(S.id)}</div>`
 :`<label>Phone number or email<input name=id placeholder="0772825413 or you@email.com" required autocomplete=username value="${esc(S.id)}"></label>`}
