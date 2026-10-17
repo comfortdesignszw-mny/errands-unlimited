@@ -25,14 +25,14 @@ if(x){if(await hash(String(b.pw||''),x.salt)!==x.hash){const n=(tr?tr.n:0)+1;awa
 else{if(!b.name||String(b.pw||'').length<6)throw E('Enter your name and a password of 6+ characters');const salt=b64(crypto.getRandomValues(new Uint8Array(16)));
 x={id:uid(),email:k,phone:id.phone||'',name:cut(b.name.trim(),60),role:b.role==='messenger'?'messenger':'client',image:'',salt,hash:await hash(b.pw,salt),created:Date.now()};
 await ex('insert into users(id,email,phone,name,role,image,salt,hash,created) values(?1,?2,?3,?4,?5,?6,?7,?8,?9)',x.id,x.email,x.phone,x.name,x.role,'',x.salt,x.hash,x.created);created=true;await ntf(x.id,'Welcome to Errands Unlimited','Your account is ready.')}
-const tok=uid()+uid();await ex('insert into sessions values(?1,?2,?3)',tok,x.id,Date.now()+30*864e5);return J({token:tok,user:pub(x),created})}
+await ex('delete from sessions where exp<?1',Date.now());const tok=uid()+uid();await ex('insert into sessions values(?1,?2,?3)',tok,x.id,Date.now()+30*864e5);return J({token:tok,user:pub(x),created})}
 // ---- public (guest) data
 if(p==='messengers'){await can('profile','read');return J((await qa('select user_id id,name,phone,tr,ar,bio,sv,img from profiles where listed=1 order by name')).map(r=>({...r,ar:JSON.parse(r.ar||'[]'),sv:JSON.parse(r.sv||'[]')})))}
 if(p==='errands'&&m==='GET'){await can('errand','read');return J(await qa(`select e.id,e.client_id,e.title,e.service,e.details,e.pickup,e.dropoff,e.dt,e.tm,e.budget,e.area,e.created,substr(u.name,1,instr(u.name||' ',' ')-1) cn from errands e join users u on u.id=e.client_id where e.status='open' order by e.created desc limit 100`))}
 // ---- everything below is private to the signed-in account
 if(!usr)throw E('Please sign in',401);
 if(p==='me'){if(m==='GET'){const pr=await q1('select * from profiles where user_id=?1',usr.id);return J({user:usr,profile:pr?{...pr,ar:JSON.parse(pr.ar||'[]'),sv:JSON.parse(pr.sv||'[]')}:null})}
-await can('user','update');const name=cut(b.name||usr.name,60),img=cut(b.image,60000);let ph=usr.phone;
+await can('user','update');const name=cut(b.name||usr.name,60),old=await q1('select img from profiles where user_id=?1',usr.id),okI=typeof b.image==='string'&&b.image.length<60000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+\/=]+$/.test(b.image),img=okI?b.image:((old&&old.img)||usr.image||'');let ph=usr.phone;
 if(usr.role==='messenger'||usr.role==='admin'){await can('profile','write');const n=norm(b.phone);if(!n||!n.phone)throw E('Enter a valid WhatsApp number');ph=n.phone;
 await ex('insert or replace into profiles values(?1,?2,?3,?4,?5,?6,?7,?8,?9)',usr.id,name,ph,cut(b.tr,30),JSON.stringify((b.ar||[]).slice(0,10).map(s=>cut(s,40))),cut(b.bio,300),JSON.stringify((b.sv||[]).slice(0,12).map(s=>({k:cut(s.k,8),n:cut(s.n,80),p:cut(s.p,8)}))),img,b.listed?1:0)}
 await ex('update users set name=?1,phone=?2,image=?3 where id=?4',name,ph,img,usr.id);return J({ok:1})}
@@ -40,7 +40,7 @@ if(p==='errands'&&m==='POST'){await can('errand','create');if(!b.title||!b.servi
 await ex('insert into errands(id,client_id,title,service,details,pickup,dropoff,dt,tm,budget,area,status,created) values(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13)',uid(),usr.id,cut(b.title,80),cut(b.service,80),cut(b.details,500),cut(b.pickup,100),cut(b.dropoff,100),cut(b.dt,12),cut(b.tm,8),cut(b.budget,10),cut(b.area,60),'open',Date.now());return J({ok:1})}
 if(p==='reqs'&&m==='GET'){await can('request','read');const rs=await qa(`select r.*,cu.name cname,cu.phone cphone,mu.name mname,mp.phone mphone from reqs r join users cu on cu.id=r.client_id join users mu on mu.id=r.messenger_id left join profiles mp on mp.user_id=r.messenger_id where r.client_id=?1 or r.messenger_id=?1 order by r.created desc`,usr.id);
 return J(rs.map(r=>{const side=r.client_id===usr.id?'client':'messenger',ok=r.kind==='book'||['accepted','completed'].includes(r.st);return{id:r.id,ref:r.ref,kind:r.kind,side,st:r.st,service:r.service,details:r.details,pickup:r.pickup,dropoff:r.dropoff,dt:r.dt,tm:r.tm,price:r.price,other:side==='client'?r.mname:r.cname,phone:side==='client'?r.mphone:(ok?r.cphone:''),created:r.created}}))}
-if(p==='reqs'&&m==='POST'){await can('request','create');let r={id:uid(),ref:'EU-'+uid().slice(0,5).toUpperCase(),kind:b.kind==='offer'?'offer':'book',created:Date.now()},to,ph='';
+if(p==='reqs'&&m==='POST'&&P.length===1){await can('request','create');let r={id:uid(),ref:'EU-'+uid().slice(0,5).toUpperCase(),kind:b.kind==='offer'?'offer':'book',created:Date.now()},to,ph='';
 if(r.kind==='offer'){await can('errand','offer');const e=await q1(`select * from errands where id=?1 and status='open'`,b.errand_id);if(!e)throw E('Errand no longer available');if(e.client_id===usr.id)throw E("You can't offer on your own errand");
 if(await q1('select 1 x from reqs where errand_id=?1 and messenger_id=?2 and st in (\'pending\',\'accepted\')',e.id,usr.id))throw E('You already offered on this errand');
 Object.assign(r,{errand_id:e.id,client_id:e.client_id,messenger_id:usr.id,service:e.service,details:e.title+' — '+e.details,pickup:e.pickup,dropoff:e.dropoff,dt:e.dt,tm:e.tm,price:cut(b.price,10)});to=e.client_id}

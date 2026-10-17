@@ -14,7 +14,7 @@ const j=await r.json().catch(()=>({}));if(!r.ok){if(r.status===401&&S.token&&p!=
 const cached=async k=>{try{const d=await api(k);localStorage['eu_c_'+k]=JSON.stringify(d);return d}catch(e){const c=localStorage['eu_c_'+k];if(c)return JSON.parse(c);throw e}};
 function setAuth(t,u){S.token=t;S.user=u||null;t?(localStorage.eu_t=t,localStorage.eu_u=JSON.stringify(u)):(localStorage.removeItem('eu_t'),localStorage.removeItem('eu_u'))}
 function gate(next){if(S.user)return true;S.pend=next;S.step=0;location.hash='#/auth';return false}
-const av=(p,c='')=>`<div class="av ${c}" style="${p.img?`background-image:url(${p.img})`:''}">${p.img?'':esc((p.name||'?')[0].toUpperCase())}</div>`;
+const av=(p,c='')=>`<div class="av ${c}" style="${p.img?`background-image:url(${esc(p.img)})`:''}">${p.img?'':esc((p.name||'?')[0].toUpperCase())}</div>`;
 const from=p=>{const n=(p.sv||[]).map(s=>+s.p).filter(Boolean);return n.length?'from $'+Math.min(...n):'price on request'};
 const TRUST=`<div class=trust><div>🛡 Reliable &amp; Trusted</div><div>⏱ Fast &amp; Efficient</div><div>🔒 Confidential &amp; Secure</div><div>👍 Affordable &amp; Convenient</div></div>`;
 

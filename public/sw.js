@@ -1,16 +1,10 @@
-/* v2: fixes ERR_FAILED on hosts (Cloudflare) that redirect /index.html -> / .
-   Browsers refuse a service worker answering a navigation with a redirected response. */
-const C='eu-v3',ROOT=new URL('./',self.location).href;
+/* Offline-first: app shell is served from cache instantly, then refreshed in the background. API calls are never cached. */
+const C='eu-v4',ROOT=new URL('./',self.location).href;
 const A=['styles.css','app.js','manifest.json','icon-192.png','icon-512.png'].map(f=>new URL(f,ROOT).href);
 const clean=async r=>r.redirected?new Response(await r.blob(),{status:200,statusText:'OK',headers:r.headers}):r;
-self.addEventListener('install',e=>e.waitUntil((async()=>{
-  const c=await caches.open(C);
-  for(const u of [ROOT,...A]){try{const r=await fetch(u,{cache:'reload'});if(r.ok)await c.put(u,await clean(r))}catch(_){}}
-  self.skipWaiting()})()));
+self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(C);
+for(const u of [ROOT,...A]){try{const r=await fetch(u,{cache:'reload'});if(r.ok)await c.put(u,await clean(r))}catch(_){}}self.skipWaiting()})()));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>clients.claim())));
-self.addEventListener('fetch',e=>{
-  const q=e.request;if(q.method!=='GET'||new URL(q.url).pathname.startsWith('/api/'))return;
-  if(q.mode==='navigate'){ // always answer app navigations with the cached shell (works offline, never a redirect)
-    e.respondWith(caches.match(ROOT).then(r=>r||fetch(ROOT).then(clean)).catch(()=>new Response('Offline',{status:503})));return}
-  e.respondWith(caches.match(q,{ignoreSearch:true}).then(r=>r||fetch(q).then(async n=>{if(n.ok&&new URL(q.url).origin===location.origin){const c=await caches.open(C);c.put(q,n.clone())}return n})));
-});
+self.addEventListener('fetch',e=>{const q=e.request,u=new URL(q.url);if(q.method!=='GET'||u.pathname.startsWith('/api/')||u.origin!==location.origin)return;
+if(q.mode==='navigate'){e.respondWith(caches.open(C).then(async c=>{const r=await c.match(ROOT);const n=fetch(ROOT).then(clean).then(x=>{if(x.ok)c.put(ROOT,x.clone());return x}).catch(()=>r||new Response('Offline',{status:503}));return r||n}));return}
+e.respondWith(caches.open(C).then(async c=>{const r=await c.match(q,{ignoreSearch:true});const n=fetch(q).then(x=>{if(x.ok)c.put(q,x.clone());return x}).catch(()=>r);return r||n}))});
